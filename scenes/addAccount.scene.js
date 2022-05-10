@@ -73,7 +73,7 @@ fillUserIdHandler.on("text", async (ctx) => {
     );
   }
 
-  await ctx.replyWithHTML(PHRASES.userAddressRequest, {
+  await ctx.replyWithHTML(PHRASES.accountWasAdded, {
     disable_web_page_preview: true,
     ...MARKUP.authorizedUser,
   });

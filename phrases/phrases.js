@@ -25,6 +25,9 @@ Please, enter ID
     
 <i>Please, send us your email or telegram username that we can contact you.</i>
     `,
+  accountWasAdded: `
+Accoun was successfully added    
+`,
 };
 
 module.exports = PHRASES;

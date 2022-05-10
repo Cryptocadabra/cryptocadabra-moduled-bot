@@ -31,6 +31,12 @@ TronLink Wallet address => ${userToFind.TRC20}
 
   console.log(template);
 
+  if (userToFind.accounts.length) {
+    return template;
+  } else {
+    return `😢 Unfortunately, you don't have any accounts connected yet`;
+  }
+
   return template;
 }
 

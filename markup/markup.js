@@ -19,7 +19,7 @@ const MARKUP = {
   nextStep: Markup.keyboard([["Next step"]]).resize(),
   brokerList: Markup.keyboard([["Binance"], ["Bybit"]]).resize(),
   changeAccountData: Markup.inlineKeyboard([
-    [Markup.button.callback("Deleter account", "deleterAccountHandler")],
+    [Markup.button.callback("Delete account", "deleteAccountHandler")],
     [Markup.button.callback("Change TRC20 address", "changeWalletHandler")],
     [Markup.button.callback("Change E-mail", "changeEmailHandler")],
   ]),

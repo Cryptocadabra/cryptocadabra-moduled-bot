@@ -20,19 +20,90 @@ const PHRASES = require("./phrases/phrases");
 const client = new MongoClient(process.env.MONGODB);
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
+// Remove account action Scene
+const userIdRequestHandler = Telegraf.on("text", async (ctx) => {
+  const userMessase = ctx.message.text;
+
+  await client.connect();
+  const userListDB = await client.db().collection("userData");
+
+  const userToFind =
+    (await userListDB.findOne({
+      telegramChatID: ctx.chat.id,
+    })) || false;
+
+  if (userToFind.accounts.length) {
+    userListDB.updateOne(
+      { telegramChatID: ctx.chat.id },
+      { $pull: { accounts: { accountId: userMessase } } }
+    );
+  } else {
+    await ctx.replyWithHTML(
+      `😢 Unfortunately, you don't have any accounts connected yet`
+    );
+  }
+
+  await ctx.reply(`Account with ID ${userMessase} was successfully removed`);
+
+  ctx.scene.leave();
+});
+
+const deleteAccountScene = new WizardScene(
+  "deleteAccountWizard",
+  userIdRequestHandler
+);
+
 const stage = new Scenes.Stage([
   registrationScene,
   casbackConnectionInstructionScene,
-  addAccountScene
+  addAccountScene,
+  deleteAccountScene,
 ]);
 bot.use(session());
 bot.use(stage.middleware());
 
-// Action
-bot.action("changeWallet", (ctx) => {
-  ctx.reply("hello");
+// const stage1 = new Scenes.Stage([deleteAccountScene, ,]);
+// bot.use(session());
+// bot.use(stage1.middleware());
+
+deleteAccountScene.enter(async (ctx) => {
+  await client.connect();
+
+  const userListDB = await client.db().collection("userData");
+  const userToFind =
+    (await userListDB.findOne({
+      telegramChatID: ctx.chat.id,
+    })) || false;
+
+  if (userToFind.accounts.length) {
+    ctx.reply("Please, enter ID of account which you want remove");
+  } else {
+    await ctx.replyWithHTML(
+      `😢 Unfortunately, you don't have any accounts connected yet`
+    );
+  }
 });
+
 // Action
+bot.action("deleteAccountHandler", async (ctx) => {
+  await ctx.answerCbQuery();
+
+  await client.connect();
+
+  const userListDB = await client.db().collection("userData");
+  const userToFind =
+    (await userListDB.findOne({
+      telegramChatID: ctx.chat.id,
+    })) || false;
+
+  if (userToFind.accounts.length) {
+    await ctx.scene.enter("deleteAccountWizard");
+  } else {
+    await ctx.replyWithHTML(
+      `😢 Unfortunately, you don't have any accounts connected yet`
+    );
+  }
+});
 
 // @START
 bot.start(async (ctx) => {
@@ -90,5 +161,5 @@ bot.hears("📝 How to connect cashback 📝", async (ctx) => {
 bot.launch();
 
 // Enable graceful stop
-// process.once("SIGINT", () => bot.stop("SIGINT"));
-// process.once("SIGTERM", () => bot.stop("SIGTERM"));
+process.once("SIGINT", () => bot.stop("SIGINT"));
+process.once("SIGTERM", () => bot.stop("SIGTERM"));
