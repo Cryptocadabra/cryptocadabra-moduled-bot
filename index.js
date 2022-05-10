@@ -11,24 +11,26 @@ require("dotenv").config();
 const registrationScene = require("./scenes/registration.scene");
 const casbackConnectionInstructionScene = require("./scenes/instruction.scene");
 
+
+
 const MARKUP = require("./markup/markup");
 const PHRASES = require("./phrases/phrases");
 
 const client = new MongoClient(process.env.MONGODB);
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
+const stage = new Scenes.Stage([
+  registrationScene,
+  casbackConnectionInstructionScene,
+]);
+bot.use(session());
+bot.use(stage.middleware());
+
 // Action
 bot.action("changeWallet", (ctx) => {
   ctx.reply("hello");
 });
 // Action
-
-const stage = new Scenes.Stage([
-  registrationScene,
-  casbackConnectionInstructionScene,
-]);
-bot.use(stage.middleware());
-bot.use(session());
 
 // @START
 bot.start(async (ctx) => {
@@ -54,12 +56,12 @@ bot.start(async (ctx) => {
 });
 
 // @HEARS
-bot.hears("🔐 Sign up 🔐", (ctx) => {
-  ctx.scene.enter("registrationWizard");
+bot.hears("🔐 Sign up 🔐", async (ctx) => {
+ await ctx.scene.enter("registrationWizard");
 });
 
-bot.hears("📝 How to connect cashback 📝", (ctx) => {
-  ctx.scene.enter("casbackConnectionInstructionWizard");
+bot.hears("📝 How to connect cashback 📝", async (ctx) => {
+  await ctx.scene.enter("casbackConnectionInstructionWizard");
 });
 
 bot.hears("⚙️ Account details ⚙️", async (ctx) => {
@@ -91,5 +93,5 @@ E-mail: ${userToFind.contacts ? userToFind.contacts : "-"}
 bot.launch();
 
 // Enable graceful stop
-process.once("SIGINT", () => bot.stop("SIGINT"));
-process.once("SIGTERM", () => bot.stop("SIGTERM"));
+// process.once("SIGINT", () => bot.stop("SIGINT"));
+// process.once("SIGTERM", () => bot.stop("SIGTERM"));

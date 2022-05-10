@@ -41,13 +41,15 @@ userIdHandler.on("text", async (ctx) => {
 
   if (userMessage === "Next step") {
     await ctx.replyWithHTML(`Okay, yout can fill this data later...`);
-  } else {
+  } else if (userMessage === "/start") {
+    return ctx.scene.leave();
+  }  else {
     if (ctx.session.currentBroker === "Binance") {
       ctx.session.firstBinanceAccount = userMessage;
     } else if (ctx.session.currentBroker === "Bybit") {
       ctx.session.firstBybitAccount = userMessage;
     } else {
-      await ctx.replyWithHTML(idNotEntered);
+      await ctx.replyWithHTML(PHRASES.idNotEntered);
     }
 
     await ctx.replyWithHTML(
