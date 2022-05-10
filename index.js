@@ -10,8 +10,9 @@ require("dotenv").config();
 
 const registrationScene = require("./scenes/registration.scene");
 const casbackConnectionInstructionScene = require("./scenes/instruction.scene");
+const addAccountScene = require("./scenes/addAccount.scene");
 
-
+const renderTemplate = require("./render/accountList.render");
 
 const MARKUP = require("./markup/markup");
 const PHRASES = require("./phrases/phrases");
@@ -22,6 +23,7 @@ const bot = new Telegraf(process.env.BOT_TOKEN);
 const stage = new Scenes.Stage([
   registrationScene,
   casbackConnectionInstructionScene,
+  addAccountScene
 ]);
 bot.use(session());
 bot.use(stage.middleware());
@@ -57,11 +59,11 @@ bot.start(async (ctx) => {
 
 // @HEARS
 bot.hears("🔐 Sign up 🔐", async (ctx) => {
- await ctx.scene.enter("registrationWizard");
+  await ctx.scene.enter("registrationWizard");
 });
 
-bot.hears("📝 How to connect cashback 📝", async (ctx) => {
-  await ctx.scene.enter("casbackConnectionInstructionWizard");
+bot.hears("📇 Add account 📇", async (ctx) => {
+  await ctx.scene.enter("addAccountWizard");
 });
 
 bot.hears("⚙️ Account details ⚙️", async (ctx) => {
@@ -73,21 +75,16 @@ bot.hears("⚙️ Account details ⚙️", async (ctx) => {
       telegramChatID: ctx.chat.id,
     })) || false;
 
+  const renderData = await renderTemplate(ctx.chat.id);
   if (userToFind) {
-    ctx.replyWithHTML(
-      `
-Binance ID: ${
-        userToFind.firstBinanceAccount ? userToFind.firstBinanceAccount : "-"
-      }
-Bybit ID: ${userToFind.firstBybitAccount ? userToFind.firstBybitAccount : "-"}
-TronLink Wallet: ${userToFind.TRC20 ? userToFind.TRC20 : "-"} 
-E-mail: ${userToFind.contacts ? userToFind.contacts : "-"}    
-      `,
-      MARKUP.changeAccountData
-    );
+    await ctx.replyWithHTML(`${renderData}`, MARKUP.changeAccountData);
   } else {
     ctx.reply("Please, signUp");
   }
+});
+
+bot.hears("📝 How to connect cashback 📝", async (ctx) => {
+  await ctx.scene.enter("casbackConnectionInstructionWizard");
 });
 
 bot.launch();

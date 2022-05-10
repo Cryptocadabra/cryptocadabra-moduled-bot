@@ -43,14 +43,8 @@ userIdHandler.on("text", async (ctx) => {
     await ctx.replyWithHTML(`Okay, yout can fill this data later...`);
   } else if (userMessage === "/start") {
     return ctx.scene.leave();
-  }  else {
-    if (ctx.session.currentBroker === "Binance") {
-      ctx.session.firstBinanceAccount = userMessage;
-    } else if (ctx.session.currentBroker === "Bybit") {
-      ctx.session.firstBybitAccount = userMessage;
-    } else {
-      await ctx.replyWithHTML(PHRASES.idNotEntered);
-    }
+  } else {
+    ctx.session.currentId = userMessage;
 
     await ctx.replyWithHTML(
       `🥳 Great! ID <code>${userMessage}</code> was added.`
@@ -117,13 +111,24 @@ userEmailHandler.on("text", async (ctx) => {
     telegramUserName: ctx.chat.username,
     registrationDate: Date.now(),
 
-    isBinance: ctx.session.isBinance,
-    isBybit: ctx.session.isBybit,
-    firstBinanceAccount: ctx.session.firstBinanceAccount,
-    firstBybitAccount: ctx.session.firstBybitAccount,
+    accounts: [],
+
     TRC20: ctx.session.TRC20,
     contacts: ctx.session.email,
   });
+
+  userListDB.updateOne(
+    { telegramChatID: ctx.chat.id },
+    {
+      $push: {
+        accounts: {
+          exchange: ctx.session.currentBroker,
+          accountId: ctx.session.currentId,
+          balance: null,
+        },
+      },
+    }
+  );
 
   return ctx.scene.leave();
 });
